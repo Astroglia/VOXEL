@@ -8,8 +8,6 @@ import queue
 import threading
 import os
 
-import ping, socket
-
 # latency =  0.05 # 5 milliseconds request
 
 # #capture = cv2.VideoCapture('http://10.1.10.158:8000/stream.mjpg')
@@ -89,13 +87,15 @@ class VideoStreamStorage:
             [ stream_data, timestamp ] = self.get_streaming_data()
 
             savename = self.save_folder + '/'  + timestamp + '.npy'
-            np.savetxt(savename , stream_data)
+            np.save(savename , stream_data, allow_pickle=True)
             os.chmod(savename, 0o777) 
 
             time.sleep(0.001)
 
 
+    #TODO hmm, make it work (ping module no longer exists in python3?)
     def check_connections(self):
+        import ping, socket
         connections_good = True
         try:
             ping.verbose_ping(self.base_page_address, count=1)
