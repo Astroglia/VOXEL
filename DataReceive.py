@@ -8,6 +8,8 @@ import queue
 import threading
 import os
 
+import FileHelper
+
 # latency =  0.05 # 5 milliseconds request
 
 # #capture = cv2.VideoCapture('http://10.1.10.158:8000/stream.mjpg')
@@ -46,17 +48,14 @@ import os
     # print('--')
    # time.sleep(latency)
 
-class VideoStreamStorage:
+class RPiVideoStream:
     def __init__(self, pi_address, framerate, save_folder):
         self.pi_address = pi_address
         self.base_page_address = 'http://' + self.pi_address + '/index.html'
         self.video_stream_address = 'http://' + self.pi_address + '/stream.mjpg'
         self.framerate = framerate
 
-        #data saving.
-        self.save_folder = save_folder
-        os.mkdir( self.save_folder )
-        os.chmod( self.save_folder, 0o777 )
+        self.file_helper = FileHelper.VideoFileManager(save_folder = save_folder)
         
         self.streaming = False
         self.streaming_data = queue.Queue()
@@ -85,13 +84,20 @@ class VideoStreamStorage:
     def continuous_save(self):
         while(self.streaming):
             [ stream_data, timestamp ] = self.get_streaming_data()
-
-            savename = self.save_folder + '/'  + timestamp + '.npy'
-            np.save(savename , stream_data, allow_pickle=True)
-            os.chmod(savename, 0o777) 
-
+            self.file_helper.save_image(stream_data, timestamp)
             time.sleep(0.001)
 
+
+    def set_streaming_data(self, data):
+        self.streaming_data.put(data)
+        print(self.streaming_data.qsize())
+    def get_streaming_data(self):
+        return self.streaming_data.get()
+    def stop_streaming(self):
+        self.streaming = False
+
+
+######################################################################################### 
 
     #TODO hmm, make it work (ping module no longer exists in python3?)
     def check_connections(self):
@@ -110,11 +116,3 @@ class VideoStreamStorage:
             connections_good = False
             print("ping error when trying to connect to: ", self.video_stream_address)
         return connections_good
-
-    def set_streaming_data(self, data):
-        self.streaming_data.put(data)
-        print(self.streaming_data.qsize())
-    def get_streaming_data(self):
-        return self.streaming_data.get()
-    def stop_streaming(self):
-        self.streaming = False
