@@ -7,7 +7,7 @@ import tf_pose
 class ActivePredict:
     def __init__(self, search_folder, save_folder):
         self.search_folder = search_folder
-        self.file_helper = FileHelper.PredictionFileManager(save_folder = save_folder)
+        self.file_helper = FileHelper.PredictionFileManager(load_folder=self.search_folder, save_folder = save_folder)
     
         self.predicting = True
 
@@ -25,12 +25,13 @@ class ActivePredict:
     def continuous_predict(self):
 
         while(self.predicting):
-            self.update_image_library()
-            image_path, image_timestamp_name = self.get_new_image()
-            coco_style = tf_pose.infer(image_path)
-            print(coco_style)
-
-            self.file_helper.save_misc(coco_style, image_timestamp_name)
+            self.file_helper.update_image_library()
+            image_path, image_timestamp_name = self.file_helper.get_new_image()
+            if image_path is not None:
+          #      print('bananas')
+                coco_style = tf_pose.infer(image_path)
+                print(coco_style)   
+                self.file_helper.save_misc(coco_style, image_timestamp_name)
 
             time.sleep(0.001)
         
