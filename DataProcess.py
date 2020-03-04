@@ -2,7 +2,7 @@
 import FileHelper
 import threading, time
 
-import tf_pose
+#import tf_pose
 
 class ActivePredict:
     def __init__(self, search_folder, save_folder):
@@ -29,8 +29,9 @@ class ActivePredict:
             image_path, image_timestamp_name = self.file_helper.get_new_image()
             if image_path is not None:
           #      print('bananas')
-                coco_style = tf_pose.infer(image_path)
-                print(coco_style)   
+              #  coco_style = tf_pose.infer(image_path)
+                coco_style = [ 'asdf', 'asdf2']
+               # print(coco_style)   
                 self.file_helper.save_misc(coco_style, image_timestamp_name)
 
             time.sleep(0.001)

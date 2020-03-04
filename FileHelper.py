@@ -7,29 +7,32 @@ from PIL import Image
 
 class VideoFileManager:
     def __init__(self, save_folder, save_delta=30, savetype='jpg'):
+
+        # set up saving directory.
         self.save_folder = save_folder
-        #set up saving directory 
         os.mkdir( self.save_folder )
         os.chmod( self.save_folder, 0o777 )
 
-        self.save_iter = 0
-        self.image_iter = 0
+        self.save_iter = 0 # SET_0 , SET_1 , ...
+        self.image_iter = 0 # counts how many images in SET_0 and iterates to SET_1 when save_delta has been reached.
         self.save_delta = save_delta
+        # set up initial set to save (SET_0)
         os.mkdir( self.save_folder + '/' + 'SET_' + str(self.save_iter) )
         os.chmod( self.save_folder + '/' + 'SET_' + str(self.save_iter), 0o777 )
         self.base_save_dir = self.save_folder + '/' + 'SET_'
 
         #self.savetype = findsavetype(savetype) #Todo --> link save type to dictionary of functions.
     
-    def save_image(self, image, image_name, iterate_image=True, check_reset=True):
+    def save_image(self, image, image_name, iterate_image=True, check_iterate_folder=True):
         curr_savename = self.base_save_dir + str(self.save_iter) + '/' + image_name
         
         self.save_jpg( image, curr_savename )
 
         if iterate_image:   self.image_iter = self.image_iter + 1
-        if check_reset:     self.check_reset()
+        if check_iterate_folder:     self.check_iterate_folder()
 
-    def check_reset(self):
+
+    def check_iterate_folder(self):
         if self.image_iter >= self.save_delta:
             self.image_iter = 0
             self.save_iter = self.save_iter + 1
@@ -69,10 +72,10 @@ class PredictionFileManager(VideoFileManager):
         
         if not self.saving_images:
             self.image_iter = self.image_iter + 1
-            self.check_read_reset()
-            self.check_reset()
+            self.check_iterate_read_folder()
+            self.check_iterate_folder()
     
-    def check_read_reset(self):
+    def check_iterate_read_folder(self):
         if self.image_iter >= self.save_delta:
             self.iterated_directories.append( self.current_dir )
             self.image_read_iter = self.image_read_iter + 1
@@ -82,16 +85,12 @@ class PredictionFileManager(VideoFileManager):
            # self.image_to_read = self.image_to_read - 29
             
     def update_image_library(self):
-        #initially starting up.
+        #TODO test this case with empty directories.
         if self.image_to_read is None:
             temp = []
             for(dirpath, dirnames, filenames) in walk(self.load_folder):
-                print(self.load_folder)
-                print(dirpath)
-                print(filenames)
                 if len(filenames) is not 0:
                     temp.extend([ dirpath + '/' + x for x in filenames ])
-
             if len(temp) is not 0:
                 self.image_library = natsort.natsorted(temp)
                 self.image_to_read = 0  
@@ -102,34 +101,16 @@ class PredictionFileManager(VideoFileManager):
                     temp.extend([ dirpath + '/' + x for x in filenames ])
                     self.image_library = temp
 
-
+    # RETURN:
+        # [None, None] or [ image_filepath, image_timestamp_name ], where both are strings.
     def get_new_image(self):
         curr_image = None
         image_timestamp_name = None
         if self.image_to_read is not None:
-            curr_image = self.image_library[self.image_to_read]
-            self.image_to_read = self.image_to_read + 1
-            image_timestamp_name = curr_image
-            image_timestamp_name.replace('./test/' + self.current_dir  + '/', '')
-            image_timestamp_name.replace('.jpg', '')
-    
+            if self.image_to_read < len(self.image_library):
+                curr_image = self.image_library[self.image_to_read]
+                self.image_to_read = self.image_to_read + 1
+                image_timestamp_name = curr_image
+                image_timestamp_name = image_timestamp_name.replace('./test/' + self.current_dir  + '/', '')
+                image_timestamp_name = image_timestamp_name.replace('.jpg', '')
         return curr_image, image_timestamp_name
-        
-
-
-# TODO implement me! (file loading for predictions)
-    #     from os import walk
-    # import natsort
-
-    # parent_folder = './test'
-
-    # files = []
-    # already_iterated = ['SET_0', 'SET_1' ]
-    # for(dirpath, dirnames, filenames) in walk(parent_folder):
-
-    #     filenames = [ dirpath + '/' + x for x in filenames]
-    #     files.extend( filenames )
-    # #  break
-
-    # files = natsort.natsorted(files)
-    # print(files)
