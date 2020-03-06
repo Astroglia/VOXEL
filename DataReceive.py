@@ -78,6 +78,8 @@ class RPiVideoStream:
             ret, frame = capture_object.read()
             received_request = requests.get(self.base_page_address)
             if frame is not None:
+
+                frame = cv2.resize(frame, dsize=(368, 368), interpolation=cv2.INTER_CUBIC) #resize
                 self.set_streaming_data( [frame, received_request.headers['tstamp'] ])
             time.sleep(0.001)
     
@@ -90,7 +92,6 @@ class RPiVideoStream:
 
     def set_streaming_data(self, data):
         self.streaming_data.put(data)
-        print(self.streaming_data.qsize())
     def get_streaming_data(self):
         return self.streaming_data.get()
     def stop_streaming(self):

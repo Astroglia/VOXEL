@@ -93,13 +93,14 @@ class PredictionFileManager(VideoFileManager):
                     temp.extend([ dirpath + '/' + x for x in filenames ])
             if len(temp) is not 0:
                 self.image_library = natsort.natsorted(temp)
-                self.image_to_read = 0  
+                self.image_to_read = 0
         else:
             if self.image_to_read > (len(self.image_library)): #only update if we need to.
                 temp = []
                 for(dirpath, dirnames, filenames) in walk(self.load_folder):
                     temp.extend([ dirpath + '/' + x for x in filenames ])
                     self.image_library = temp
+        
 
     # RETURN:
         # [None, None] or [ image_filepath, image_timestamp_name ], where both are strings.
@@ -111,6 +112,8 @@ class PredictionFileManager(VideoFileManager):
                 curr_image = self.image_library[self.image_to_read]
                 self.image_to_read = self.image_to_read + 1
                 image_timestamp_name = curr_image
-                image_timestamp_name = image_timestamp_name.replace('./test/' + self.current_dir  + '/', '')
+                image_timestamp_name = image_timestamp_name.replace(self.load_folder + '/' + self.current_dir  + '/', '')
                 image_timestamp_name = image_timestamp_name.replace('.jpg', '')
+            else:
+                print(" waiting on more images... ")
         return curr_image, image_timestamp_name
